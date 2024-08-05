@@ -18,6 +18,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -25,16 +26,25 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+      - name: Output JS Filename
+        id: output-js-filename
+        run: | 
+            js_filename=$(find dist/assets -type f -name "*.js" | awk -F/ '{print $NF}')
+            echo "js-filename=$js_filename" >> $GITHUB_OUTPUT
+
+
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4 # Vamos usar uma action para isso
-        # A action possui algumas configurações
+        uses: actions/upload-artifact@v4 
         with:
           name: dist-files
-          # Os paths que queremos carregar ou não carregar no caso do ! na frente.
           path: |
             dist
             !dist/**/*.md
             !dist/**/*.tmp
+
+    outputs:
+      build-output: ${{ steps.output-js-filename.outputs.js-filename }}
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -43,9 +53,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist-files
-      - name: list current dir
-        run: ls
-      - name: list parent dir
-        run: ls ..
+      - name: Print JS Filename
+        # usar a palavra especial needs consegue referenciar os jobs.
+        run: echo "${{ needs.build.outputs.build-output}}"
       - name: Deploy
         run: echo "Deploying..."
