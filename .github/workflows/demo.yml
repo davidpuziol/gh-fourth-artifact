@@ -25,9 +25,19 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4 # Vamos usar uma action para isso
+        # A action possui algumas configurações
+        with:
+          name: dist-files
+          # Os paths que queremos carregar ou não carregar no caso do ! na frente.
+          path: |
+            dist
+            !dist/**/*.md
+            !dist/**/*.tmp
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Deploy
-        run: echo "Deploying..."
+        run: echo "Deploying...
